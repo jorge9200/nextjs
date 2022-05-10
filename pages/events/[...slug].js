@@ -6,6 +6,7 @@ import ErrorAlert from "../../components/ui/error-alert";
 import useSWR from "swr";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import Head from "next/head";
 
 function SearchEventsPage() {
   const router = useRouter();
@@ -33,14 +34,36 @@ function SearchEventsPage() {
     }
   }, [data]);
 
+  let pageHeadData = (
+    <Head>
+      <title>Filtered events</title>
+      <meta name="description" content="Filtered events" />
+    </Head>
+  );
+
   // If no loaded events: loading...
   if (!loadedEvents) {
-    return <p className="center">Loading...</p>;
+    return (
+      <Fragment>
+        {pageHeadData}
+        <p className="center">Loading...</p>
+      </Fragment>
+    );
   }
 
   // Prepare date filters
   const filteredYear = +filterData[0];
   const filteredMonth = +filterData[1];
+
+  pageHeadData = (
+    <Head>
+      <title>Filtered events</title>
+      <meta
+        name="description"
+        content={`Filtered events for ${filteredMonth}/${filteredYear}`}
+      />
+    </Head>
+  );
 
   // If filters not right || error, show error
   if (
@@ -54,6 +77,7 @@ function SearchEventsPage() {
   ) {
     return (
       <Fragment>
+        {pageHeadData}
         <ErrorAlert>
           <p>Invalid filters. Please adjust your values!!</p>
         </ErrorAlert>
@@ -92,6 +116,7 @@ function SearchEventsPage() {
 
   return (
     <Fragment>
+      {pageHeadData}
       <ResultsTitle date={date} />
       <EventList items={filteredEvents} />
     </Fragment>
