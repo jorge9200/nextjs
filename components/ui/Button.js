@@ -1,4 +1,4 @@
-import classes from "./Button.module.css";
+import classes from "./button.module.css";
 import Link from "next/link";
 
 function Button(props) {

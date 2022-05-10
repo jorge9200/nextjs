@@ -1,33 +1,56 @@
-import { useRouter } from "next/router";
 import { Fragment } from "react";
 import EventList from "../../components/events/event-list";
-import { getFilteredEvents } from "../../dummy-data";
 import ResultsTitle from "../../components/events/results-title";
-import Button from "../../components/ui/Button";
+import Button from "../../components/ui/button";
 import ErrorAlert from "../../components/ui/error-alert";
+import useSWR from "swr";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 function SearchEventsPage() {
   const router = useRouter();
   const filterData = router.query.slug;
+  const [loadedEvents, setLoadedEvents] = useState();
+  const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
-  if (!filterData) {
-    return (
-      <ErrorAlert>
-        <p className="center">Loading...</p>
-      </ErrorAlert>
-    );
+  // Get all events
+  const { data, error } = useSWR(
+    "https://nextjs-ded2e-default-rtdb.firebaseio.com/events.json",
+    fetcher
+  );
+
+  //Set loaded events
+  useEffect(() => {
+    if (data) {
+      const events = [];
+      for (const key in data) {
+        events.push({
+          id: key,
+          ...data[key],
+        });
+      }
+      setLoadedEvents(events);
+    }
+  }, [data]);
+
+  // If no loaded events: loading...
+  if (!loadedEvents) {
+    return <p className="center">Loading...</p>;
   }
 
+  // Prepare date filters
   const filteredYear = +filterData[0];
   const filteredMonth = +filterData[1];
 
+  // If filters not right || error, show error
   if (
     isNaN(filteredYear) ||
     isNaN(filteredMonth) ||
     filteredYear > 2030 ||
     filteredYear < 2021 ||
     filteredMonth < 1 ||
-    filteredMonth > 12
+    filteredMonth > 12 ||
+    error
   ) {
     return (
       <Fragment>
@@ -41,11 +64,16 @@ function SearchEventsPage() {
     );
   }
 
-  const filteredEvents = getFilteredEvents({
-    year: filteredYear,
-    month: filteredMonth,
+  // Filter events by date
+  const filteredEvents = loadedEvents.filter((event) => {
+    const eventDate = new Date(event.date);
+    return (
+      eventDate.getFullYear() === filteredYear &&
+      eventDate.getMonth() === filteredMonth - 1
+    );
   });
 
+  // If no events for choosed filters, show alert
   if (!filteredEvents || filteredEvents.length === 0) {
     return (
       <Fragment>
@@ -59,6 +87,7 @@ function SearchEventsPage() {
     );
   }
 
+  // Prepare date for banner
   const date = new Date(filteredYear, filteredMonth - 1);
 
   return (
