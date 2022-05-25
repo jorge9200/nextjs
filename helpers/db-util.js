@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
 const uri =
-  "mongodb+srv://jorge9200:Alast0rLuc1lle@cluster0.7ihfx9a.mongodb.net/?retryWrites=true&w=majority";
+  "mongodb+srv://jorge9200:XXX@cluster0.7ihfx9a.mongodb.net/?retryWrites=true&w=majority";
 
 export async function connectDB() {
   const client = await MongoClient.connect(uri);
